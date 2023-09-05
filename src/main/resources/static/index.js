@@ -128,27 +128,18 @@ function checkGamepadAxes() {
 // Add an event listener to periodically check gamepad axes
 //setInterval(checkGamepadAxes, 1000);
 
-// Function to draw the car icon at specified position (x, y)
+// Function to draw a custom car icon at specified position (x, y)
+// add a parameter for the car image URL provided by the backend
+
 function drawCarIcon(x, y) {
-    const carIcon = new Image();
-    carIcon.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><path d="M50 0C22.39 0 0 22.39 0 50s22.39 50 50 50 50-22.39 50-50S77.61 0 50 0zm0 90c-24.81 0-45-20.19-45-45s20.19-45 45-45 45 20.19 45 45-20.19 45-45 45z" fill="red"/></svg>');
-
-    carIcon.onload = function () {
-        // Draw the car icon at the specified position (x, y)
-        ctx.drawImage(carIcon, x, y, 50, 50); // Adjust the size as needed
-    };
-}
-
-function drawCarIcon2(x, y) {
-    const carIcon = new Image();
+    const carImage = new Image();
     
-    // Encode the FontAwesome car icon to base64 using an online tool or manually
-    carIcon.src = 'data:image/svg+xml;base64,' + 
-        'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj4KICA8cGF0aCBkPSJNMjAwIDAgQzIyLjM5IDAgMDAsMjIuMzk3IDAgMTAwIDAgQzEwMC4xIDIyLjM5IDkzLjkzOSAxMDAgMTAwIDkzLjkzOSAxMDAgMjIuMzk3IDIwMCAxMDAgMjAwIDkzLjkzOSIgZmlsbD0ibmx1ZSIvPgogIDxwYXRoIGQ9Ik0wIDAwQzIyLjM5IDAwIDAsMjIuMzk3IDAgMTAwIDAgQzEwMC4xIDIyLjM5IDkzLjkzOSAxMDAgMTAwIDkzLjkzOSAxMDAgMjIuMzk3IDIwMCAxMDAgMjAwIDkzLjkzOSIgZmlsbD0iYmx1ZSIvPjwvc3ZnPgo=';
+    // Set the source URL of the car image provided by the backend
+    carImage.src = '/images/car.png';
 
-    carIcon.onload = function () {
-        // Draw the car icon at the specified position (x, y)
-        ctx.drawImage(carIcon, x, y, 100, 100); // Adjust the size as needed
+    carImage.onload = function () {
+        // Draw the car image at the specified position (x, y)
+        ctx.drawImage(carImage, x, y, 100, 100); // Adjust the size as needed
     };
 }
 
@@ -188,5 +179,4 @@ window.addEventListener('gamepadconnected', (event) => {
 
 // Initial draw of the square
 drawSquare(squareX, squareY);
-drawCarIcon2(110, 110);
 drawCarIcon(10, 10);
