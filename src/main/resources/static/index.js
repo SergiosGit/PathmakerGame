@@ -1,8 +1,12 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const squareSize = 50; // Size of the square
-let squareX = canvas.width / 2; // Initial X position
-let squareY = canvas.height / 2; // Initial Y position
+let imageCenterX  = canvas.width / 2; // Center X coordinate of the image
+let imageCenterY  = canvas.height / 2; // Center Y coordinate of the image
+let carWidth = 100;
+let carHeight = 100;
+let squareX = imageCenterX-carWidth/2; // Initial X position
+let squareY = imageCenterY-carHeight/2; // Initial Y position
 let ipAddress = 'http://localhost:8082'; // Replace with your server IP
 
 // Function to fetch and display high scores
@@ -133,12 +137,38 @@ function checkGamepadAxes() {
 const carImage = new Image();
 // Set the source URL of the car image provided by the backend
 carImage.src = '/images/car.png';
+const gamefieldImage = new Image();
+gamefieldImage.src = '/images/gamefield.png';
 
-function drawCarIcon(x, y) {
+function drawCarIcon(x, y, rotationAngle) {
 
+    // Draw the gamefield image
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+    ctx.drawImage(gamefieldImage, 0, 0, canvas.width, canvas.height);
+
+    // Save the current canvas state
+    ctx.save();
+
+    // move the canvas context to the center of the carImage
+    const dx = x + carWidth/2;
+    const dy = y + carHeight/2;
+    ctx.translate(dx , dy );
+
+    // Rotate the canvas
+    ctx.rotate(rotationAngle);
+    
+    // Translate back to the original position
+    ctx.translate(-dx , -dy );
+
+    // Draw the rotated image
+    ctx.drawImage(carImage, x, y, carWidth, carHeight);
+
+    // Restore the canvas state
+    ctx.restore();
+    
     //carImage.onload = function () {
         // Draw the car image at the specified position (x, y)
-        ctx.drawImage(carImage, x, y, 100, 100); // Adjust the size as needed
+        //ctx.drawImage(carImage, x, y, 100, 100); // Adjust the size as needed
     //};
 }
 
@@ -149,9 +179,9 @@ function drawCarIcon(x, y) {
 //    ctx.fillRect(x, y, squareSize, squareSize); // Draw the square
 //}
 
-// Function to update the square's position based on gamepad input
+// Function to update the square's position and rotation based on gamepad input
+let rotationAngle = 0; // Initial rotation angle
 function updateSquarePosition(axesValues) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
 
     // Update the square's position based on gamepad input
     squareX += axesValues[0]; // Adjust X position (left-right movement)
@@ -161,10 +191,14 @@ function updateSquarePosition(axesValues) {
     squareX = Math.max(0, Math.min(canvas.width - squareSize, squareX));
     squareY = Math.max(0, Math.min(canvas.height - squareSize, squareY));
 
+    // Update the square's rotation based on gamepad input
+    rotationAngle += axesValues[2]; // Adjust rotation angle (left-right movement)
+
     // Draw the updated square position
     //drawSquare(squareX, squareY);
-    drawCarIcon(squareX, squareY);
+    drawCarIcon(squareX, squareY, rotationAngle);
 }
+
 // Add an event listener for gamepad input
 window.addEventListener('gamepadconnected', (event) => {
     const gamepad = event.gamepad;
@@ -181,5 +215,5 @@ window.addEventListener('gamepadconnected', (event) => {
 // Initial draw of the square
 //drawSquare(squareX, squareY);
 carImage.onload = function () {
-    drawCarIcon(squareX, squareY);
+    drawCarIcon(squareX, squareY, rotationAngle);
 }

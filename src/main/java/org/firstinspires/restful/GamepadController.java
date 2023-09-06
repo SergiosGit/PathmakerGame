@@ -19,15 +19,27 @@ public class GamepadController {
         List<Double> axesValues = requestBody.get("axesValues");
 
         if (axesValues != null) {
-            // Perform the multiplication operation (multiply by 10)
-            List<Double> multipliedValues = axesValues.stream()
-                    .map(value -> value * 10)
+            // Perform on each axis value a different operation
+            List<Double> modifiedValues = axesValues.stream()
+                    .map(value -> {
+                        if (value == axesValues.get(0)) {
+                            return value * 10;
+                        } else if (value == axesValues.get(1)) {
+                            return value * 10;
+                        } else if (value == axesValues.get(2)) {
+                            return value * 0.06;
+                        } else if (value == axesValues.get(3)) {
+                            return value * 0.06;
+                        } else {
+                            return value;
+                        }
+                    })
                     .collect(Collectors.toList());
 
             // You can access the gamepadIndex here
             // System.out.println("Received gamepadIndex: " + gamepadIndex);
 
-            return ResponseEntity.ok(multipliedValues.toString());
+            return ResponseEntity.ok(modifiedValues.toString());
         } else {
             return ResponseEntity.badRequest().body("Invalid request body.");
         }
