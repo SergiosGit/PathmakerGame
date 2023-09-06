@@ -130,28 +130,28 @@ function checkGamepadAxes() {
 
 // Function to draw a custom car icon at specified position (x, y)
 // add a parameter for the car image URL provided by the backend
+const carImage = new Image();
+// Set the source URL of the car image provided by the backend
+carImage.src = '/images/car.png';
 
 function drawCarIcon(x, y) {
-    const carImage = new Image();
-    
-    // Set the source URL of the car image provided by the backend
-    carImage.src = '/images/car.png';
 
-    carImage.onload = function () {
+    //carImage.onload = function () {
         // Draw the car image at the specified position (x, y)
         ctx.drawImage(carImage, x, y, 100, 100); // Adjust the size as needed
-    };
+    //};
 }
 
 // Function to draw the blue square
-function drawSquare(x, y) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    ctx.fillStyle = 'blue'; // Set square color
-    ctx.fillRect(x, y, squareSize, squareSize); // Draw the square
-}
+//function drawSquare(x, y) {
+//    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+//    ctx.fillStyle = 'blue'; // Set square color
+//    ctx.fillRect(x, y, squareSize, squareSize); // Draw the square
+//}
 
 // Function to update the square's position based on gamepad input
 function updateSquarePosition(axesValues) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
 
     // Update the square's position based on gamepad input
     squareX += axesValues[0]; // Adjust X position (left-right movement)
@@ -162,7 +162,8 @@ function updateSquarePosition(axesValues) {
     squareY = Math.max(0, Math.min(canvas.height - squareSize, squareY));
 
     // Draw the updated square position
-    drawSquare(squareX, squareY);
+    //drawSquare(squareX, squareY);
+    drawCarIcon(squareX, squareY);
 }
 // Add an event listener for gamepad input
 window.addEventListener('gamepadconnected', (event) => {
@@ -178,5 +179,7 @@ window.addEventListener('gamepadconnected', (event) => {
 });
 
 // Initial draw of the square
-drawSquare(squareX, squareY);
-drawCarIcon(10, 10);
+//drawSquare(squareX, squareY);
+carImage.onload = function () {
+    drawCarIcon(squareX, squareY);
+}
