@@ -5,8 +5,10 @@ let imageCenterX  = canvas.width / 2; // Center X coordinate of the image
 let imageCenterY  = canvas.height / 2; // Center Y coordinate of the image
 let carWidth = 100;
 let carHeight = 100;
-let squareX = imageCenterX-carWidth/2; // Initial X position
-let squareY = imageCenterY-carHeight/2; // Initial Y position
+let initialCarX = imageCenterX-carWidth/2; // Initial X position
+let initialCarY = imageCenterY-carHeight/2; // Initial Y position
+let squareX = initialCarX; // Initial X position
+let squareY = initialCarY; // Initial Y position
 let ipAddress = 'http://localhost:8082'; // Replace with your server IP
 
 // Function to fetch and display high scores
@@ -81,31 +83,39 @@ function checkGamepadConnection() {
 // Function to send gamepad index and axes values to the backend
 async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
     try {
-        // Construct the URL with the gamepadIndex in the path
-        const url = `${ipAddress}/api/gamepad/${gamepadIndex}`;
+        const forward = axesValues[0];
+        const strafe = axesValues[1];
+        const turn = axesValues[2];
+        const index = gamepadIndex;
 
-        const response = await fetch(url, {
+        // Create an object to represent the request body
+        const requestBody = {
+            axesValues: [forward, strafe, turn, index]
+        };
+
+        // Make a POST request to the API with the JSON request body
+        fetch('/api/calculate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ axesValues })
-        });
-        if (response.status === 200) {
-            const result = await response.json();
-            // Assuming result is an array of length 4
-            if (Array.isArray(result) && result.length === 4) {
-                // Update the axesValues array with the received values
-                const updatedAxesValues = result.map(value => value * 1); // Adjust the multiplier as needed
-
-                // Call the updateSquarePosition function with the updated axesValues
-                updateSquarePosition(updatedAxesValues);
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => {
+            if (response.status === 200) {
+                return response.json();
             } else {
-                console.error('Invalid response format from the server.');
-            }            
-        } else {
-            console.error('Failed to send gamepad axes to the server.');
-        }
+                throw new Error('Failed to send gamepad axes to the server.');
+            }
+        })
+        .then(data => {
+            // Handle the calculated values returned from the server
+            updateSquarePosition(data);
+            console.log(data); // The array of calculated values
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     } catch (error) {
         console.error('Error sending gamepad axes to the server:', error);
     }
@@ -184,15 +194,15 @@ let rotationAngle = 0; // Initial rotation angle
 function updateSquarePosition(axesValues) {
 
     // Update the square's position based on gamepad input
-    squareX += axesValues[0]; // Adjust X position (left-right movement)
-    squareY += axesValues[1]; // Adjust Y position (up-down movement)
+    squareX = initialCarX + axesValues[0]; // Adjust X position (left-right movement)
+    squareY = initialCarY + axesValues[1]; // Adjust Y position (up-down movement)
 
     // Ensure the square stays within the canvas boundaries
     squareX = Math.max(0, Math.min(canvas.width - squareSize, squareX));
     squareY = Math.max(0, Math.min(canvas.height - squareSize, squareY));
 
     // Update the square's rotation based on gamepad input
-    rotationAngle += axesValues[2]; // Adjust rotation angle (left-right movement)
+    rotationAngle = axesValues[2]; // Adjust rotation angle (left-right movement)
 
     // Draw the updated square position
     //drawSquare(squareX, squareY);
@@ -209,7 +219,7 @@ window.addEventListener('gamepadconnected', (event) => {
     // Periodically check and update the square's position based on gamepad input
     setInterval(() => {
         checkGamepadAxes();
-    }, 50); // Adjust the interval as needed for responsiveness
+    }, 20); // Adjust the interval as needed for responsiveness
 });
 
 // Initial draw of the square
