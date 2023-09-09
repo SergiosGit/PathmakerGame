@@ -142,7 +142,7 @@ public class PathManager {
             // within reach value: reduce power proportional to distance
             power = deltaIsShould / rampReach;
         }
-        // check if power is increasing too fast
+        // check if power is increasing or decreasing too fast (maxPowerStep is always positive)
         if (Math.abs(power) > Math.abs(lastPower) + maxPowerStep) {
             power = lastPower + signumIsShould * maxPowerStep;
         }

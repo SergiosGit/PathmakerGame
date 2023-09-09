@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 public class GamepadController {
-
+    private int gamepadIndex = 0;
     @PostMapping("/calculate")
     public double[] calculateValues(@RequestBody Map<String, List<Double>> requestBody) {
         // Extract the axes values from the request body
         List<Double> axesValues = requestBody.get("axesValues");
-
+        gamepadIndex = axesValues.get(3).intValue();
         // Ensure that the axesValues list has at least three elements
         if (axesValues != null && axesValues.size() >= 4) {
             PathDetails.setPath_DriverControlled(axesValues.get(0),axesValues.get(1),axesValues.get(2));
@@ -35,7 +35,16 @@ public class GamepadController {
             return calculatedValues;
         } else {
             // Handle the case where there are not enough elements in axesValues
-            return new double[0]; // Return an empty array or handle the error accordingly
+            return new double[0];
         }
+    }
+
+    @GetMapping("/initialize")
+    public ResponseEntity<String> initialize() {
+        // Perform initialization logic here
+        // ...
+        RobotPoseSimulation.initializePose(0, 0, 0);
+        // Return a success response (status code 200)
+        return ResponseEntity.ok("Initialization successful");
     }
 }

@@ -145,41 +145,28 @@ function checkGamepadAxes() {
 // Function to draw a custom car icon at specified position (x, y)
 // add a parameter for the car image URL provided by the backend
 const carImage = new Image();
-// Set the source URL of the car image provided by the backend
 carImage.src = '/images/car.png';
 const gamefieldImage = new Image();
 gamefieldImage.src = '/images/gamefield.png';
 
 function drawCarIcon(x, y, rotationAngle) {
-
     // Draw the gamefield image
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
     ctx.drawImage(gamefieldImage, 0, 0, canvas.width, canvas.height);
-
     // Save the current canvas state
     ctx.save();
-
     // move the canvas context to the center of the carImage
     const dx = x + carWidth/2;
     const dy = y + carHeight/2;
     ctx.translate(dx , dy );
-
     // Rotate the canvas
     ctx.rotate(rotationAngle);
-    
     // Translate back to the original position
     ctx.translate(-dx , -dy );
-
     // Draw the rotated image
     ctx.drawImage(carImage, x, y, carWidth, carHeight);
-
     // Restore the canvas state
     ctx.restore();
-    
-    //carImage.onload = function () {
-        // Draw the car image at the specified position (x, y)
-        //ctx.drawImage(carImage, x, y, 100, 100); // Adjust the size as needed
-    //};
 }
 
 // Function to draw the blue square
@@ -222,8 +209,124 @@ window.addEventListener('gamepadconnected', (event) => {
     }, 20); // Adjust the interval as needed for responsiveness
 });
 
-// Initial draw of the square
-//drawSquare(squareX, squareY);
+// Initial draw of the car icon
 carImage.onload = function () {
-    drawCarIcon(squareX, squareY, rotationAngle);
-}
+    // Send an "initialize" request to the backend
+    fetch('/api/initialize', {
+        method: 'GET',
+    })
+    .then(response => {
+        if (response.status === 200) {
+            // The "initialize" request was successful
+            console.log('Initialization successful');
+            // Now, draw the car icon and handle other logic
+            drawCarIcon(squareX, squareY, rotationAngle);
+        } else {
+            // Handle errors or failed initialization
+            console.error('Initialization failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error during initialization:', error);
+    });
+};
+
+
+// Get a reference to the open charts button element
+const openChartsButton = document.getElementById('openChartsButton');
+
+// Add a click event listener to the button
+openChartsButton.addEventListener('click', function () {
+    // Open a new window when the button is clicked
+    const separateWindow = window.open('', 'Separate Window', 'width=800,height=400');
+
+    // Check if the separate window was successfully opened
+    if (separateWindow) {
+        // create window title for the separate window
+        separateWindow.document.title = 'Charts';
+        // Set a minimal HTML structure for the document to provide a URL
+        separateWindow.document.documentElement.innerHTML = '<html><head></head><body></body></html>';
+        const separateDocument = separateWindow.document;
+        // create title for the separate window
+        const title = separateDocument.createElement('h1');
+        title.textContent = 'Charts';
+        separateDocument.body.appendChild(title);
+        // create site info for the separate window
+        const siteInfo = separateDocument.createElement('p');
+        siteInfo.textContent = 'This window shows the calculated values from the backend.';
+        separateDocument.body.appendChild(siteInfo);
+
+        chart1 = newChartCanvasElement('chart1','Forward');
+        chart2 = newChartCanvasElement('chart2','Strafe');    
+        chart3 = newChartCanvasElement('chart3','Turn');
+        console.log("Charts created");
+        const calculatedValues = [0,0,0,0];
+        // Call the updateCharts function with the initial data
+        updateCharts(calculatedValues);
+
+
+        // Create a canvas element for a chart
+        function newChartCanvasElement(id,label) {
+            const canvasElement = separateDocument.createElement('canvas');
+            canvasElement.id = id; // Optionally set an ID for the canvas    
+            // Set the canvas width and height
+            canvasElement.width = 400; // Set the desired width
+            canvasElement.height = 200; // Set the desired height
+            // Append the canvas element to the separate window's document
+            separateDocument.body.appendChild(canvasElement);
+            const thisCtx = canvasElement.getContext('2d');
+            chart = new Chart(thisCtx, {
+                type: 'line',
+                data: {
+                    labels: [], // You can add timestamps as labels
+                    datasets: [{
+                        label: label,
+                        data: [],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    // Chart options
+                }
+            });
+            return chart;
+        }
+
+        // Function to update chart data
+        function updateCharts(newData) {
+            // Update chart data and labels here
+            // newData should be an array containing values for each chart
+            chart1.data.labels.push(''); // Add timestamp or label
+            chart1.data.datasets[0].data.push(newData[0]);
+            chart2.data.labels.push('');
+            chart2.data.datasets[0].data.push(newData[1]);
+            chart3.data.labels.push('');
+            chart3.data.datasets[0].data.push(newData[2]);
+
+            // Limit the number of data points shown, e.g., to 10
+            if (chart1.data.labels.length > 10) {
+                chart1.data.labels.shift();
+                chart1.data.datasets[0].data.shift();
+                chart2.data.labels.shift();
+                chart2.data.datasets[0].data.shift();
+                chart3.data.labels.shift();
+                chart3.data.datasets[0].data.shift();
+            }
+
+            // Update the charts
+            chart1.update();
+            chart2.update();
+            chart3.update();
+        }
+
+    } else {
+        // Handle the case where the separate window couldn't be opened
+        console.error('Failed to open separate window');
+    }
+
+
+
+});
+
