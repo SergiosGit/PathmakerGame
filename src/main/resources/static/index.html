@@ -4,6 +4,7 @@
     <title>Game High Scores</title>
     <!-- Include FontAwesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Include modeswitch CSS from local file -->
     <style>
         canvas {
         background-color: rgb(188, 164, 210);
@@ -12,6 +13,17 @@
 </head>
 <body>
     <h1>Game High Scores</h1>
+
+    <form id="modeForm">
+        <label>
+            <input type="radio" name="gameMode" value="Pathmaker" checked>
+            One-Player Mode (Pathmaker Test)
+        </label>
+        <label>
+            <input type="radio" name="gameMode" value="multiPlayer">
+            Multiplayer Mode (without Pathmaker)
+        </label>
+    </form>
 
     <!-- Form to Add High Score -->
     <form id="highScoreForm">

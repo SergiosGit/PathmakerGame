@@ -10,6 +10,19 @@ let initialCarY = imageCenterY-carHeight/2; // Initial Y position
 let squareX = initialCarX; // Initial X position
 let squareY = initialCarY; // Initial Y position
 let ipAddress = 'http://localhost:8082'; // Replace with your server IP
+ 
+
+const modeForm = document.getElementById('modeForm');
+const gameModeElements = modeForm.elements.gameMode;
+// Add an event listener to detect mode changes
+modeForm.addEventListener('change', function () {
+    selectedMode = Array.from(gameModeElements).find(radio => radio.checked).value;
+});
+
+// Initial mode selection
+let selectedMode = Array.from(gameModeElements).find(radio => radio.checked).value;
+console.log(`Initial mode: ${selectedMode}`);
+
 
 // Function to fetch and display high scores
 async function fetchHighScores() {
@@ -64,21 +77,6 @@ document.getElementById('highScoreForm').addEventListener('submit', async functi
 // Initial fetch of high scores
 fetchHighScores();
 
-// Function to check for connected gamepads
-function checkGamepadConnection() {
-    // Get a list of all connected gamepads
-    const gamepads = navigator.getGamepads();
-
-    // Iterate through the gamepads and check their connection status
-    for (const gamepad of gamepads) {
-        if (gamepad) {
-            // A gamepad is connected, you can access its properties here
-            console.log(`checkGamepadConnection: Gamepad connected: ${gamepad.id}`);
-            console.log(`checkGamepadConnection: Number of buttons: ${gamepad.buttons.length}`);
-            console.log(`checkGamepadConnection: Number of axes: ${gamepad.axes.length}`);
-        }
-    }
-}
 
 // Function to send gamepad index and axes values to the backend
 async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
@@ -86,8 +84,11 @@ async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
         const forward = axesValues[0];
         const strafe = axesValues[1];
         const turn = axesValues[2];
-        const index = gamepadIndex;
+        let index = gamepadIndex;
 
+        if (selectedMode === "Pathmaker") {
+            index = -1;
+        }
         // Create an object to represent the request body
         const requestBody = {
             axesValues: [forward, strafe, turn, index]
@@ -111,7 +112,7 @@ async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
         .then(data => {
             // Handle the calculated values returned from the server
             updateSquarePosition(data);
-            console.log(data); // The array of calculated values
+            //console.log(data); // The array of calculated values
         })
         .catch(error => {
             console.error('Error:', error);
@@ -124,8 +125,8 @@ async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
 // Check for connected gamepads and send axes values to the backend
 function checkGamepadAxes() {
     const gamepads = navigator.getGamepads();
-    for (let indexGampad = 0; indexGampad < gamepads.length; indexGampad++) {
-        const gamepad = gamepads[indexGampad];
+    for (let indexGamepad = 0; indexGamepad < gamepads.length; indexGamepad++) {
+        const gamepad = gamepads[indexGamepad];
         if (gamepad) {
             const axesValues = gamepad.axes.map(value => value * 1); // Implicit number format conversion Adjust the multiplier as needed
             // clamp values to zero if they are below a certain threshold
@@ -134,7 +135,8 @@ function checkGamepadAxes() {
                     axesValues[indexAxis] = 0;
                 }
             }
-            sendGamepadAxesToBackend(indexGampad,axesValues);
+            //console.log("selectedMode: " + selectedMode);
+            sendGamepadAxesToBackend(indexGamepad,axesValues);
         } 
     }
 }
@@ -147,7 +149,7 @@ function checkGamepadAxes() {
 const carImage = new Image();
 carImage.src = '/images/car.png';
 const gamefieldImage = new Image();
-gamefieldImage.src = '/images/gamefield.png';
+gamefieldImage.src = '/images/gamefield2023.png';
 
 function drawCarIcon(x, y, rotationAngle) {
     // Draw the gamefield image
@@ -242,11 +244,11 @@ openChartsButton.addEventListener('click', function () {
 
     // Check if the separate window was successfully opened
     if (separateWindow) {
-        // create window title for the separate window
-        separateWindow.document.title = 'Charts';
-        // Set a minimal HTML structure for the document to provide a URL
-        separateWindow.document.documentElement.innerHTML = '<html><head></head><body></body></html>';
         const separateDocument = separateWindow.document;
+        // create window title for the separate window
+        separateDocument.title = 'Charts';
+        // Set a minimal HTML structure for the document to provide a URL
+        separateDocument.documentElement.innerHTML = '<html><head></head><body></body></html>';
         // create title for the separate window
         const title = separateDocument.createElement('h1');
         title.textContent = 'Charts';

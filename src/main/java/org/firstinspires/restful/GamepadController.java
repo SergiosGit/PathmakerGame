@@ -22,17 +22,24 @@ public class GamepadController {
         gamepadIndex = axesValues.get(3).intValue();
         // Ensure that the axesValues list has at least three elements
         if (axesValues != null && axesValues.size() >= 4) {
-            PathDetails.setPath_DriverControlled(axesValues.get(0),axesValues.get(1),axesValues.get(2));
-            try {
-                PathManager.moveRobot();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (gamepadIndex < 0) {
+                // this is the pathmaker mode
+                PathDetails.setPath_DriverControlled(axesValues.get(0),axesValues.get(1),axesValues.get(2));
+                try {
+                    PathManager.moveRobot();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                // Create an array with the calculated results
+                double[] calculatedValues = {RobotPoseSimulation.forward, RobotPoseSimulation.strafe, RobotPoseSimulation.angle,0};
+                // define gamepadIndex  as axesValues.get(3)
+                // System.out.println("Received gamepadIndex: " + axesValues.get(3));
+                return calculatedValues;
+            } else {
+                // this is the multiplayer mode
+                double[] calculatedValues = {0, 0, 0,0};
+                return calculatedValues;
             }
-            // Create an array with the calculated results
-            double[] calculatedValues = {RobotPoseSimulation.forward, RobotPoseSimulation.strafe, RobotPoseSimulation.angle,0};
-            // define gamepadIndex  as axesValues.get(3)
-            // System.out.println("Received gamepadIndex: " + axesValues.get(3));
-            return calculatedValues;
         } else {
             // Handle the case where there are not enough elements in axesValues
             return new double[0];
