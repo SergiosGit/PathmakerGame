@@ -5,30 +5,33 @@
     <title>Centerstage (FTC 2023-2024)</title>
     <style>
         canvas {
-        background-color: rgb(188, 164, 210);
-      }
+            background-color: rgb(188, 164, 210);
+            float: left; /* Align the canvas to the left */
+        }
+        #robotCoordinates {
+            float: left; /* Align the coordinates section to the left */
+            margin-left: 20px; /* Add some margin for separation */
+        }
+        #robotCoordinates p {
+            margin: 10px 0; /* Add some margin between each robot's coordinates */
+        }
     </style>
 </head>
 <body>
     <h1>Centerstage (FTC 2023-2024)</h1>
-
-    <form id="modeForm">
-        <label>
-            <input type="radio" name="gameMode" value="Pathmaker">
-            One-Player Mode (Pathmaker Test)
-        </label>
-        <label>
-            <input type="radio" name="gameMode" value="multiPlayer" checked>
-            Multiplayer Mode (without Pathmaker)
-        </label>
-    </form>
-
 
     <script src="chart.js/dist/chart.umd.js"></script>
     <!-- Button to Open Charts -->
     <button id="openChartsButton">Open Charts</button>
 
     <canvas id="gameCanvas" width="1200" height="1200"></canvas>
+
+    <div id="robotCoordinates">
+        <p>Robot 1 - X: <span id="robot1X">0</span>, Y: <span id="robot1Y">0</span>, R: <span id="robot1R">0</span></p>
+        <p>Robot 2 - X: <span id="robot2X">0</span>, Y: <span id="robot2Y">0</span>, R: <span id="robot2R">0</span></p>
+        <p>Robot 3 - X: <span id="robot3X">0</span>, Y: <span id="robot3Y">0</span>, R: <span id="robot3R">0</span></p>
+        <p>Robot 4 - X: <span id="robot4X">0</span>, Y: <span id="robot4Y">0</span>, R: <span id="robot4R">0</span></p>
+    </div>
     <script src="index.js" defer> </script>
 
 </body>

@@ -19,9 +19,9 @@
 
 package org.firstinspires.ftc.teamcode.pathmaker;
 
-// import RobotPose from sim package for simulation mode
+// On windows, use the following import to run the pathmaker in simulation mode:
 import org.firstinspires.ftc.sim.RobotPose;
-// import RobotPose from op package for real robot
+// on Android, use the following import to run the pathmaker in real mode:
 // import org.firstinspires.ftc.teamcode.op.RobotPose;
 
 public class PathManager {
@@ -31,9 +31,9 @@ public class PathManager {
     public static double strafeRampReach_in = 12;
     public static double turnRampReach_deg = 45;
     public static double powerScaling = 1;
-    public static double forwardPower, forwardPowerLast = 0;
-    public static double strafePower, strafePowerLast = 0;
-    public static double turnPower, turnPowerLast = 0;
+    public static double forwardPower, forwardPowerLast;
+    public static double strafePower, strafePowerLast;
+    public static double turnPower, turnPowerLast;
     private enum THISDOF {FORWARD, STRAFE, TURN}
 
     // set path time
@@ -48,14 +48,10 @@ public class PathManager {
         forwardPower = 0;
         strafePower = 0;
         turnPower = 0;
-        //forwardPowerLast = 0;
-        //strafePowerLast = 0;
-        //turnPowerLast = 0;
         // double actualStartTime_ms = System.currentTimeMillis();
         ParallelAction.initPath();
         while (elapsedTime_ms < PathDetails.pathTime_ms) {
             // move robot
-            // log elapsed time
             elapsedTime_ms += timeStep_ms;
             // double actualElapsedTime_ms = System.currentTimeMillis() - actualStartTime_ms;
             // calculate remaining forward movement in original COS
@@ -85,14 +81,14 @@ public class PathManager {
                 RobotPoseSimulation.updatePose(forwardPower, strafePower, turnPower, timeStep_ms);
             } else {
                 // move real robot
-                RobotPose.updatePose(forwardPower, strafePower, turnPower);
+                //RobotPose.updatePose(forwardPower, strafePower, turnPower);
             }
             Thread.sleep(timeStep_ms);
             // update telemetry after timeStep_ms to measure how far
             // the robot moved with the new settings
             // this is only necessary for the "real" robot
             if (!GameSetup.SIMULATION) {
-                RobotPose.readPose();
+                //RobotPose.readPose();
             }
             ParallelAction.execute(PathDetails.parallelAction, deltaIsShouldForward, deltaIsShouldStrafe);
         }
@@ -142,7 +138,7 @@ public class PathManager {
             // within reach value: reduce power proportional to distance
             power = deltaIsShould / rampReach;
         }
-        // check if power is increasing or decreasing too fast (maxPowerStep is always positive)
+        // check if power is increasing too fast
         if (Math.abs(power) > Math.abs(lastPower) + maxPowerStep) {
             power = lastPower + signumIsShould * maxPowerStep;
         }

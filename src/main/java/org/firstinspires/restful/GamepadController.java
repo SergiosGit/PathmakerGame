@@ -4,12 +4,10 @@ import org.springframework.web.bind.annotation.*;
 import org.firstinspires.ftc.teamcode.pathmaker.PathDetails;
 import org.firstinspires.ftc.teamcode.pathmaker.PathManager;
 import org.firstinspires.ftc.teamcode.pathmaker.RobotPoseSimulation;
-import org.firstinspires.ftc.teamcode.pathmaker.GameSetup;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map; 
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -22,7 +20,7 @@ public class GamepadController {
         gamepadIndex = axesValues.get(3).intValue();
         // Ensure that the axesValues list has at least three elements
         if (axesValues != null && axesValues.size() >= 4) {
-            if (gamepadIndex < 0) {
+            //if (gamepadIndex < 0) {
                 // this is the pathmaker mode
                 PathDetails.setPath_DriverControlled(axesValues.get(0),axesValues.get(1),axesValues.get(2));
                 try {
@@ -33,13 +31,14 @@ public class GamepadController {
                 // Create an array with the calculated results
                 double[] calculatedValues = {RobotPoseSimulation.forward, RobotPoseSimulation.strafe, RobotPoseSimulation.angle,0};
                 // define gamepadIndex  as axesValues.get(3)
-                // System.out.println("Received gamepadIndex: " + axesValues.get(3));
+                //System.out.println("Received gamepadIndex: " + axesValues); // + axesValues.get(3));
+                //System.out.println("Received calculatedValues: " + RobotPoseSimulation.forward);
                 return calculatedValues;
-            } else {
-                // this is the multiplayer mode
-                double[] calculatedValues = {0, 0, 0,0};
-                return calculatedValues;
-            }
+            //} else {
+            //    // this is the multiplayer mode
+            //    double[] calculatedValues = {0, 0, 0,0};
+            //    return calculatedValues;
+           // }
         } else {
             // Handle the case where there are not enough elements in axesValues
             return new double[0];

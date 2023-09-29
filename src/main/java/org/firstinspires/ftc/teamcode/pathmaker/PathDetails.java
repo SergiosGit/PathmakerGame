@@ -49,8 +49,11 @@ public class PathDetails {
     // set path receives gampad input and sets the path parameters
     public static void setPath_DriverControlled(double forward, double strafe, double turn)
     {
+        double robotAngle;
+        double robotForwardPosition;
+        double robotStrafePosition;
         // initialize robot path
-        GameSetup.SIMULATION = true;
+        // GameSetup.SIMULATION = true;
         //GameSetup.thisTeamColor = GameSetup.TeamColor.BLUE;
         //GameSetup.thisTerminal = GameSetup.Terminal.RED;
         //RobotPoseSimulation.initializePose(0, 0, 0);
@@ -61,9 +64,22 @@ public class PathDetails {
         parallelAction = ParallelAction.ACTION.NONE;
         pathTime_ms = PathManager.timeStep_ms;
         powerScaling = 1;
-        forwardGoal_in = PathManager.forwardRampReach_in * forward + RobotPoseSimulation.forward;
-        strafeGoal_in = PathManager.strafeRampReach_in * strafe + RobotPoseSimulation.strafe;
-        turnGoal_deg = PathManager.turnRampReach_deg * turn + RobotPoseSimulation.angle;
+        if (GameSetup.SIMULATION){
+            robotForwardPosition = RobotPoseSimulation.forward;
+            robotStrafePosition = RobotPoseSimulation.strafe;
+            robotAngle = RobotPoseSimulation.angle;
+        } else {
+            // need to update with actual robot position
+            robotForwardPosition = 0;
+            robotStrafePosition = 0;
+            robotAngle = 0;
+        }
+        // Note that "forward" is directly from the gamepad, i.e. a vallue between -1 and 1.
+        // Robot forward power is maximum for requested gaols larger or equal than forwardRampReach_in (this is controlled by the PathManager)
+        // Similar for strafe and turn.
+        forwardGoal_in = PathManager.forwardRampReach_in * forward + robotForwardPosition;
+        strafeGoal_in = PathManager.strafeRampReach_in * strafe + robotStrafePosition;
+        turnGoal_deg = PathManager.turnRampReach_deg * turn + robotAngle;
         forwardDelay_ms = 0; 
         strafeDelay_ms = 0;
         turnDelay_ms = 0;

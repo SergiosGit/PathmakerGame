@@ -5,22 +5,7 @@ let imageCenterX  = canvas.width / 2; // Center X coordinate of the image
 let imageCenterY  = canvas.height / 2; // Center Y coordinate of the image
 let carWidth = 100;
 let carHeight = 100;
-let ipAddress = 'http://localhost:8082'; // Replace with your server IP
- 
-
-const modeForm = document.getElementById('modeForm');
-const gameModeElements = modeForm.elements.gameMode;
-// Add an event listener to detect mode changes
-modeForm.addEventListener('change', function () {
-    selectedMode = Array.from(gameModeElements).find(radio => radio.checked).value;
-});
-
-// Initial mode selection
-let selectedMode = Array.from(gameModeElements).find(radio => radio.checked).value;
-console.log(`Initial mode: ${selectedMode}`);
-
-
-
+let ipAddress = 'http://localhost:8082'; // Replace with your server IP address
 
 // Function to send gamepad index and axes values to the backend
 async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
@@ -30,14 +15,13 @@ async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
         const turn = axesValues[2];
         let index = gamepadIndex;
 
-        if (selectedMode === "Pathmaker") {
-            index = -1;
-        }
+        numberOfGamepads = 1; // Set the numberOfGamepads to 1 for testing purposes (gampadIndex is always 0)
         // Create an object to represent the request body
         const requestBody = {
             axesValues: [forward, strafe, turn, index]
         };
 
+        //console.log(requestBody);
         // Make a POST request to the API with the JSON request body
         fetch('/api/calculate', {
             method: 'POST',
@@ -55,8 +39,9 @@ async function sendGamepadAxesToBackend(gamepadIndex, axesValues) {
         })
         .then(data => {
             // Handle the calculated values returned from the server
-            updateRobotPosition(data);
-            //console.log(data); // The array of calculated values
+            gamepadStates[gamepadIndex].axes = data;
+            updateRobotPositions(numberOfGamepads);
+            //console.log(gamepadIndex,data); // The array of calculated values
         })
         .catch(error => {
             console.error('Error:', error);
@@ -70,45 +55,67 @@ function checkGamepadAxes() {
     const gamepads = navigator.getGamepads();
     
     // Check the selected mode
-    if (selectedMode === 'Pathmaker') {  // send data to backend
-        let indexGamepad = 0
-        // Pathmaker mode: Send axesValues to the backend for the selected gamepad
-        const gamepad = gamepads[indexGamepad];
-        if (gamepad) {
-            const axesValues = gamepad.axes.map(value => value * 1); // Implicit number format conversion. Adjust the multiplier as needed
-            // Clamp values to zero if they are below a certain threshold
-            for (let indexAxis = 0; indexAxis < axesValues.length; indexAxis++) {
-                if (Math.abs(axesValues[indexAxis]) < 0.05) {
-                    axesValues[indexAxis] = 0;
-                }
-            }
-            sendGamepadAxesToBackend(indexGamepad, axesValues);
-        }
-    } else {
-        // Multiplayer mode: Update axesValues for all connected gamepads without sending them to the backend
-        var numberOfGamepads = 0;
-        for (let indexGamepad = 0; indexGamepad < gamepads.length; indexGamepad++) {
-            const gamepad = gamepads[indexGamepad];
-            if (gamepad) {
-                numberOfGamepads++;
-                const axesValues = gamepad.axes.map(value => value * 1); // Implicit number format conversion. Adjust the multiplier as needed
-                // Clamp values to zero if they are below a certain threshold
-                for (let indexAxis = 0; indexAxis < axesValues.length; indexAxis++) {
-                    if (Math.abs(axesValues[indexAxis]) < 0.05) {
-                        axesValues[indexAxis] = 0;
-                    } else {
-                        axesValues[indexAxis] = axesValues[indexAxis] * axesValuesScalingFactor[indexAxis];
-                    }
-                }
-                // Update axesValues for the gamepad in the multiplayer mode
-                updateGamepadAxes(indexGamepad, axesValues);
+    let indexGamepad = 0
+    // Pathmaker mode: Send axesValues to the backend for the selected gamepad
+    const gamepad = gamepads[indexGamepad];
+    if (gamepad) {
+        const axesValues = gamepad.axes.map(value => value * 1); // Implicit number format conversion. Adjust the multiplier as needed
+        // Clamp values to zero if they are below a certain threshold
+        for (let indexAxis = 0; indexAxis < axesValues.length; indexAxis++) {
+            if (Math.abs(axesValues[indexAxis]) < 0.05) {
+                axesValues[indexAxis] = 0;
             }
         }
-        // Update the robot position based on the actual number of connected gamepads
-        // This ensures that the robot position is only updated if at least one gamepad is connected
-        updateRobotPositions(numberOfGamepads);
-
+        sendGamepadAxesToBackend(indexGamepad, axesValues);
     }
+}
+
+// Function to update the robot's position and rotation based on gamepad input
+function updateRobotPositions(numberOfGamepads) {
+    // Draw the gamefield image
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+    ctx.drawImage(gamefieldImage, 0, 0, canvas.width, canvas.height);
+    // Save the current canvas state
+
+    for (let indexGamepad = 0; indexGamepad < numberOfGamepads; indexGamepad++) {
+        ctx.save();
+        // Get the axes values for the specified gamepadStates
+        const carImage = carImages[indexGamepad];
+        const axesValues = gamepadStates[indexGamepad].axes;
+        // These are the gamefield coordinates of the robot (not the gamepad axes values)
+        x = axesValues[0];
+        y = axesValues[1];
+        //x = Math.min(0, Math.max(117 - robotSize, x));
+        //x = Math.max(117, Math.min(948, x));
+        //y = Math.max(104, Math.min(888, y));
+        gamepadStates[indexGamepad].axes[0] = x;
+        gamepadStates[indexGamepad].axes[1] = y;
+        const rotationAngle = axesValues[2];
+        // move the canvas context to the center of the carImage
+        const dx = x + carWidth/2;
+        const dy = y + carHeight/2;
+        ctx.translate(dx , dy );
+        // Rotate the canvas
+        ctx.rotate(rotationAngle);
+        // Translate back to the original position
+        ctx.translate(-dx , -dy );
+        // Draw the rotated image
+        ctx.drawImage(carImage, x, y, carWidth, carHeight);
+        // Restore the canvas state
+        ctx.restore();
+        // Update the robot coordinates
+        updateRobotCoordinates(indexGamepad, x, y, rotationAngle);
+    }
+}
+
+// Function to update the dsiplayed robot's position and rotation based on gamepad input
+function updateRobotCoordinates(robotIndex, x, y, r) {
+    const robotXElement = document.getElementById(`robot${robotIndex+1}X`);
+    const robotYElement = document.getElementById(`robot${robotIndex+1}Y`);
+    const robotRElement = document.getElementById(`robot${robotIndex+1}R`);
+    robotXElement.textContent = x.toFixed(0);
+    robotYElement.textContent = y.toFixed(0);
+    robotRElement.textContent = r.toFixed(2);
 }
 
 axesValuesScalingFactor = [];
@@ -126,40 +133,48 @@ gamepadStates[1] = { axes: [100, 700, 0, 0] }; // Initialize the second gamepad 
 gamepadStates[2] = { axes: [1000, 400, 0, 0] }; // Initialize the third gamepad state for car_red_1 
 gamepadStates[3] = { axes: [1000, 700, 0, 0] }; // Initialize the fourth gamepad state for car_red_2
 
-// Function to draw a custom car icon at specified position (x, y)
-// add a parameter for the car image URL provided by the backend
-//const carImage = document.createElement('img');
-const gamefieldImage = document.createElement('img');
-gamefieldImage.src = "/8_FTC/Software/Pathmaker3/restful/restful/src/main/resources/images/gamefield2023.png";
-gamefieldImage.onload = function () {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    ctx.drawImage(gamefieldImage, 0, 0, canvas.width, canvas.height);
-};
 
 const carImages = [];
 // Function to load an image and push it to the carImages array
 function loadImageAndDraw(src, x, y) {
     const img = new Image();
-    img.onload = function () {
-        // Once the image is loaded, draw it on the canvas at the specified position (x, y)
-        ctx.drawImage(img, x, y, carWidth, carHeight);
-    };
+    //img.onload = function () {
+    //    // Once the image is loaded, draw it on the canvas at the specified position (x, y)
+    //    ctx.drawImage(img, x, y, carWidth, carHeight);
+    //};
     img.src = src;
     carImages.push(img);
 }
-loadImageAndDraw("/8_FTC/Software/Pathmaker3/restful/restful/src/main/resources/images/car_blue_1.png", gamepadStates[0].axes[0], gamepadStates[0].axes[1]);
-loadImageAndDraw("/8_FTC/Software/Pathmaker3/restful/restful/src/main/resources/images/car_blue_2.png", gamepadStates[1].axes[0], gamepadStates[1].axes[1]);
-loadImageAndDraw("/8_FTC/Software/Pathmaker3/restful/restful/src/main/resources/images/car_red_1.png", gamepadStates[2].axes[0], gamepadStates[2].axes[1]);
-loadImageAndDraw("/8_FTC/Software/Pathmaker3/restful/restful/src/main/resources/images/car_red_2.png", gamepadStates[3].axes[0], gamepadStates[3].axes[1]);
+loadImageAndDraw("/images/car_blue_1.png", gamepadStates[0].axes[0], gamepadStates[0].axes[1]);
+loadImageAndDraw("/images/car_blue_2.png", gamepadStates[1].axes[0], gamepadStates[1].axes[1]);
+loadImageAndDraw("/images/car_red_1.png", gamepadStates[2].axes[0], gamepadStates[2].axes[1]);
+loadImageAndDraw("/images/car_red_2.png", gamepadStates[3].axes[0], gamepadStates[3].axes[1]);
 
+const carImage = new Image();
+const gamefieldImage = new Image();
+carImage.src = '/images/car.png';
+gamefieldImage.src = '/images/gamefield2023.png';
+gamefieldImage.onload = function () {
+    // Send an "initialize" request to the backend
+    fetch('/api/initialize', {
+        method: 'GET',
+    })
+    .then(response => {
+        if (response.status === 200) {
+            // The "initialize" request was successful
+            console.log('Initialization successful');
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            ctx.drawImage(gamefieldImage, 0, 0, canvas.width, canvas.height);
 
-
-//if (selectedMode === 'Pathmaker') {
-//    const carImage = new Image();
-//    const gamefieldImage = new Image();
-//    carImage.src = '/images/car.png';
-//    gamefieldImage.src = '/images/gamefield2023.png';
-//}
+        } else {
+            // Handle errors or failed initialization
+            console.error('Initialization failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error during initialization:', error);
+    });
+};
 
 // Update the gamepad axes in javascript instead of sending them to the backend
 function updateGamepadAxes(indexGamepad, axesValues) {
@@ -216,6 +231,7 @@ window.addEventListener('gamepadconnected', (event) => {
     setInterval(() => {
         checkGamepadAxes();
     }, 20); // Adjust the interval as needed for responsiveness
+
 });
 
 // Get a reference to the open charts button element
