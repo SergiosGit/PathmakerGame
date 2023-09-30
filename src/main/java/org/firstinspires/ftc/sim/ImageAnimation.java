@@ -31,10 +31,11 @@ public class ImageAnimation extends JPanel implements ActionListener {
 
     public ImageAnimation() {
         // define path for images        
-        String imagePath = "E:\\8_FTC\\Software\\Pathmaker\\pathmaker\\src\\main\\java\\org\\firstinspires\\ftc\\sim\\";
+        //String imagePath = "E:\\8_FTC\\Software\\Pathmaker\\pathmaker\\src\\main\\java\\org\\firstinspires\\ftc\\sim\\";
+        String imagePath = "E:\\8_FTC\\Software\\Pathmaker3\\restful\\restful\\src\\main\\resources\\images\\";
         try {
             // read image from file
-            robot = ImageIO.read(new File(imagePath+"Robot.png"));
+            robot = ImageIO.read(new File(imagePath+"car_blue_1.png"));
             System.out.println("robot size = " + robot.getWidth(null) + "," + robot.getHeight(null));
         } catch (Exception e) {
             System.out.println("Image not found");
@@ -42,7 +43,7 @@ public class ImageAnimation extends JPanel implements ActionListener {
         }
         try {
             // read image from file`
-            gameField = ImageIO.read(new File(imagePath+"GameField.png"));
+            gameField = ImageIO.read(new File(imagePath+"gamefield2023.png"));
             System.out.println("gameField size = " + gameField.getWidth(null) + "," + gameField.getHeight(null));
         } catch (Exception e) {
             System.out.println("Image not found");
@@ -131,12 +132,17 @@ public class ImageAnimation extends JPanel implements ActionListener {
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
         AffineTransform at = new AffineTransform();
-        // scale the gamefiled by 2.0
-        //at.scale(2.0, 2.0);
+        // draw gamefield image, but first scale it by:
+        double scaleGamefield = 0.6;
+        g2d.drawImage(gameField, 0, 0, 
+            (int)(gameField.getWidth(null)*scaleGamefield), 
+            (int)(gameField.getHeight(null)*scaleGamefield),
+            null);
+        //g2d.drawImage(gameField, 0, 0, null);
         at.translate(x, y);
-        g2d.drawImage(gameField, 0, 0, null);
-        // scale robot image
-        at.scale(0.1, 0.1);
+        // scale robot image by
+        double scaleRobot = 0.2;
+        at.scale(scaleRobot, scaleRobot);
         // rotate robot image
         at.rotate(Math.toRadians(RobotPoseSimulation.fieldAngle), robot.getWidth(null)/2, robot.getHeight(null)/2);   
         g2d.drawImage(robot, at, null);
