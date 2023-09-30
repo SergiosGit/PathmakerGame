@@ -65,7 +65,7 @@ public class ImageAnimation extends JPanel implements ActionListener {
             public void run() {
                 try {
                     // start stopwatchApp
-                    stopwatchApp.start();
+                    StopwatchApp.start();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -117,7 +117,7 @@ public class ImageAnimation extends JPanel implements ActionListener {
                     }
                     if (endOfPath) {
                         System.out.println("end of path");
-                        stopwatchApp.stop();
+                        StopwatchApp.stop();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
